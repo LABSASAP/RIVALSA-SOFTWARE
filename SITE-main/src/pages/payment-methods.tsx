@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import { CreditCard, Plus, Trash2 } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
@@ -18,8 +19,16 @@ const TYPE_LABEL: Record<string, string> = {
   apple_pay: "Apple Pay",
 }
 
+type RequestError = {
+  code?: string
+  message: string
+  status?: number
+}
+
 export function PaymentMethodsPage() {
-  const { session } = useAuth()
+  const navigate = useNavigate()
+  const { session, signOut } = useAuth()
+  const userId = session?.user.id
   const [methods, setMethods] = useState<PaymentMethod[]>([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
@@ -27,42 +36,120 @@ export function PaymentMethodsPage() {
   const [last4, setLast4] = useState("")
   const [isDefault, setIsDefault] = useState(true)
 
+  const redirectToLogin = () => {
+    void signOut().finally(() => navigate("/login"))
+  }
+
+  const handleRequestError = (fallback: string, error: RequestError) => {
+    const authError =
+      error.status === 401 ||
+      error.status === 403 ||
+      error.code === "PGRST301" ||
+      /jwt|unauthorized|forbidden|permission|not authorized/i.test(error.message)
+
+    if (authError) {
+      toast.error("Sessione scaduta o non autorizzata. Accedi di nuovo.")
+      redirectToLogin()
+      return
+    }
+
+    toast.error(error.message || fallback)
+  }
+
   const load = async () => {
+    if (!userId) {
+      setMethods([])
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
-    const { data } = await supabase.from("payment_methods").select("*").order("created_at", { ascending: false })
+    const { data, error } = await supabase
+      .from("payment_methods")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      setMethods([])
+      setLoading(false)
+      handleRequestError("Non e stato possibile caricare i metodi di pagamento.", error)
+      return
+    }
+
     setMethods((data as PaymentMethod[]) ?? [])
     setLoading(false)
   }
-  useEffect(() => { load() }, [])
+
+  useEffect(() => { void load() }, [userId])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!userId) {
+      toast.error("Sessione mancante. Accedi per salvare un metodo di pagamento.")
+      navigate("/login")
+      return
+    }
     if (last4.length !== 4 || !/^\d+$/.test(last4)) {
       toast.error("Inserisci 4 cifre")
       return
     }
     setAdding(true)
     const { error } = await supabase.from("payment_methods").insert({
-      user_id: session!.user.id,
+      user_id: userId,
       type, last4, is_default: isDefault,
     })
     setAdding(false)
-    if (error) { toast.error(error.message); return }
+    if (error) {
+      handleRequestError("Non e stato possibile salvare il metodo di pagamento.", error)
+      return
+    }
     toast.success("Metodo aggiunto")
     setLast4("")
     setIsDefault(true)
-    load()
+    void load()
   }
 
   const remove = async (id: string) => {
-    const { error } = await supabase.from("payment_methods").delete().eq("id", id)
-    if (error) { toast.error(error.message); return }
+    if (!userId) {
+      toast.error("Sessione mancante. Accedi per gestire i metodi di pagamento.")
+      navigate("/login")
+      return
+    }
+
+    const { error } = await supabase
+      .from("payment_methods")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId)
+
+    if (error) {
+      handleRequestError("Non e stato possibile eliminare il metodo di pagamento.", error)
+      return
+    }
     toast.success("Metodo eliminato")
-    load()
+    void load()
+  }
+
+  if (!userId) {
+    return (
+      <AppShell title="Metodi di pagamento">
+        <TonalCard className="text-center py-8">
+          <CreditCard className="size-7 mx-auto text-[var(--muted-foreground)]" />
+          <h2 className="mt-3 text-lg font-bold">Sessione richiesta</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--muted-foreground)]">
+            Accedi per visualizzare e gestire i tuoi metodi di pagamento.
+          </p>
+          <Button asChild className="mt-5 h-12 rounded-2xl btn-primary-grad px-5 font-bold">
+            <Link to="/login">Vai al login</Link>
+          </Button>
+        </TonalCard>
+      </AppShell>
+    )
   }
 
   return (
-    <AppShell title="Pagamenti">
+    <AppShell title="Metodi di pagamento">
       <div className="mb-3 px-1">
         <h2 className="text-lg font-bold">Metodi salvati</h2>
         <p className="text-sm text-[var(--muted-foreground)]">Usati per addebito automatico a fine corsa.</p>
@@ -84,7 +171,7 @@ export function PaymentMethodsPage() {
                   <CreditCard className="size-5 text-[var(--primary)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold">{TYPE_LABEL[m.type]} •••• {m.last4}</p>
+                  <p className="font-bold">{TYPE_LABEL[m.type]} **** {m.last4}</p>
                   {m.is_default && (
                     <span className="inline-flex mt-1 items-center rounded-full bg-[var(--secondary-container)] text-[var(--secondary-foreground)] px-2 py-0.5 text-[0.6875rem] font-bold uppercase tracking-wide">
                       Predefinito
@@ -127,7 +214,7 @@ export function PaymentMethodsPage() {
             <span className="text-sm font-medium">Imposta come predefinito</span>
           </label>
           <Button type="submit" disabled={adding} className="h-12 mt-2 rounded-2xl btn-primary-grad font-bold">
-            {adding ? <Spinner /> : (<><Plus className="size-4" /> Aggiungi metodo</>)}
+            {adding ? <Spinner /> : (<><Plus className="size-4" /> Salva metodo</>)}
           </Button>
         </form>
       </TonalCard>

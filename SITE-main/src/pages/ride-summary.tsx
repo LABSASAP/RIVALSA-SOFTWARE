@@ -2,7 +2,15 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { Check } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
-import { StatusChip, TonalCard, VehicleEmoji, VehicleTypeLabel } from "@/components/vehicle-card"
+import {
+  StatusChip,
+  TonalCard,
+  VehicleCategoryLabel,
+  VehicleDisplayName,
+  VehicleEmoji,
+  VehicleIconType,
+  formatVehicleMoney,
+} from "@/components/vehicle-card"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { supabase, type Ride, type RideEndDetails, type Vehicle } from "@/lib/supabase"
@@ -16,6 +24,7 @@ export function RideSummaryPage() {
   const navigate = useNavigate()
   const [ride, setRide] = useState<Ride | null>(null)
   const [vehicle, setVehicle] = useState<Vehicle | null>(null)
+  const [rideDetails, setRideDetails] = useState<RideEndDetails | null>(null)
   const [payment, setPayment] = useState<Payment | null>(null)
   const [method, setMethod] = useState<Method | null>(null)
   const [endLoc, setEndLoc] = useState<{ lat: number; lng: number } | null>(null)
@@ -36,6 +45,7 @@ export function RideSummaryPage() {
       }
       const { data: details } = await supabase.rpc("ride_end_details", { p_ride_id: id })
       const detail = ((details as RideEndDetails[] | null) ?? [])[0]
+      setRideDetails(detail ?? null)
       if (detail?.end_lat != null && detail.end_lng != null) {
         setEndLoc({ lat: detail.end_lat, lng: detail.end_lng })
       } else {
@@ -83,9 +93,16 @@ export function RideSummaryPage() {
 
       <div className="mt-4 space-y-3">
         <RowCard label="ID corsa" value={ride.id.slice(0, 8).toUpperCase()} mono />
-        <RowCard label="Mezzo" value={`${vehicle.code} · ${VehicleTypeLabel(vehicle.type)}`}>
-          <VehicleEmoji type={vehicle.type} />
+        <RowCard
+          label="Mezzo"
+          value={`${vehicle.code} - ${rideDetails?.vehicle_display_name ?? VehicleDisplayName(vehicle)}`}
+        >
+          <VehicleEmoji type={rideDetails?.vehicle_type ?? VehicleIconType(vehicle)} />
         </RowCard>
+        <RowCard
+          label="Tariffa"
+          value={`${VehicleCategoryLabel({ ...vehicle, category: rideDetails?.vehicle_category ?? vehicle.category })}: ${formatVehicleMoney(rideDetails?.unlock_fee ?? vehicle.unlock_fee)} sblocco - ${formatVehicleMoney(rideDetails?.price_per_minute ?? vehicle.price_per_minute)}/min`}
+        />
         <RowCard label="Metodo di pagamento" value={method ? `${method.type.toUpperCase()} •••• ${method.last4}` : "—"} />
         <RowCard label="Stato pagamento">
           <StatusChip status={payment?.status ?? "pending"} />

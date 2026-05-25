@@ -2,7 +2,18 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 import { AppShell } from "@/components/app-shell"
-import { BatteryBar, StatusChip, TonalCard, VehicleEmoji, VehicleTypeLabel } from "@/components/vehicle-card"
+import {
+  BatteryBar,
+  StatusChip,
+  TonalCard,
+  VehicleCategoryLabel,
+  VehicleDisplayName,
+  VehicleEmoji,
+  VehicleIconType,
+  VehicleModelLabel,
+  VehiclePricingLabel,
+  formatVehicleHourlyRate,
+} from "@/components/vehicle-card"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { supabase, type Vehicle } from "@/lib/supabase"
@@ -20,7 +31,7 @@ export function VehicleDetailPage() {
     ;(async () => {
       const { data } = await supabase
         .from("vehicles")
-        .select("id, code, type, status, battery_level, created_at, updated_at")
+        .select("*")
         .eq("id", id)
         .maybeSingle()
       const { data: pos } = await supabase.rpc("vehicles_nearby", { p_lat: 41.1175, p_lng: 16.872, p_radius: 50000 })
@@ -64,10 +75,11 @@ export function VehicleDetailPage() {
     <AppShell title="Dettaglio mezzo" back="/nearby">
       <TonalCard className="text-center pb-7">
         <div className="flex justify-center mb-4">
-          <VehicleEmoji type={vehicle.type} />
+          <VehicleEmoji type={VehicleIconType(vehicle)} />
         </div>
         <p className="label-sm text-[var(--muted-foreground)]">{vehicle.code}</p>
-        <h2 className="text-2xl font-extrabold mt-1">{VehicleTypeLabel(vehicle.type)}</h2>
+        <h2 className="text-2xl font-extrabold mt-1">{VehicleDisplayName(vehicle)}</h2>
+        <p className="mt-1 text-sm font-semibold text-[var(--muted-foreground)]">{VehicleModelLabel(vehicle)}</p>
         <div className="mt-3 flex justify-center">
           <StatusChip status={vehicle.status} />
         </div>
@@ -77,6 +89,22 @@ export function VehicleDetailPage() {
         <TonalCard>
           <p className="label-sm text-[var(--muted-foreground)]">BATTERIA</p>
           <div className="mt-2"><BatteryBar level={vehicle.battery_level} /></div>
+        </TonalCard>
+        <TonalCard>
+          <p className="label-sm text-[var(--muted-foreground)]">CATEGORIA</p>
+          <p className="font-bold text-sm mt-2">{VehicleCategoryLabel(vehicle)}</p>
+        </TonalCard>
+        <TonalCard>
+          <p className="label-sm text-[var(--muted-foreground)]">TARIFFA</p>
+          <p className="text-xs font-semibold mt-2 leading-relaxed text-[var(--primary)]">{VehiclePricingLabel(vehicle)}</p>
+        </TonalCard>
+        <TonalCard>
+          <p className="label-sm text-[var(--muted-foreground)]">ORARIA</p>
+          <p className="font-bold text-sm mt-2">{formatVehicleHourlyRate(vehicle.hourly_rate)}</p>
+        </TonalCard>
+        <TonalCard>
+          <p className="label-sm text-[var(--muted-foreground)]">AUTONOMIA</p>
+          <p className="font-bold text-sm mt-2">{vehicle.range_km ? `${vehicle.range_km} km` : "n/d"}</p>
         </TonalCard>
         <TonalCard>
           <p className="label-sm text-[var(--muted-foreground)]">COORDINATE</p>

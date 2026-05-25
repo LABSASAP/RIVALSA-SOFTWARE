@@ -25,12 +25,25 @@ export type Profile = {
   updated_at: string
 }
 
+export type VehicleType = "bike" | "scooter" | "car"
+export type VehicleCategory = "bike" | "scooter" | "economy_car" | "standard_car" | "premium_car"
+
 export type Vehicle = {
   id: string
   code: string
-  type: "bike" | "scooter" | "car"
+  type: VehicleType
+  vehicle_type: VehicleType
+  category: VehicleCategory
+  brand: string
+  model: string
+  display_name: string
   status: "available" | "reserved" | "in_use" | "maintenance"
   battery_level: number
+  unlock_fee: number
+  price_per_minute: number
+  hourly_rate: number
+  range_km: number | null
+  icon_type: string
   location?: unknown
   last_maintenance_at?: string | null
   operator_notes?: string | null
@@ -41,9 +54,19 @@ export type Vehicle = {
 export type NearbyVehicle = {
   id: string
   code: string
-  type: Vehicle["type"]
+  type: VehicleType
+  vehicle_type: VehicleType
+  category: VehicleCategory
+  brand: string
+  model: string
+  display_name: string
   status: Vehicle["status"]
   battery_level: number
+  unlock_fee: number
+  price_per_minute: number
+  hourly_rate: number
+  range_km: number | null
+  icon_type: string
   lat: number
   lng: number
   distance_m: number
@@ -75,7 +98,14 @@ export type RideEndDetails = {
   ride_id: string
   vehicle_id: string
   vehicle_code: string
-  vehicle_type: Vehicle["type"]
+  vehicle_type: VehicleType
+  vehicle_brand: string
+  vehicle_model: string
+  vehicle_display_name: string
+  vehicle_category: VehicleCategory
+  unlock_fee: number
+  price_per_minute: number
+  hourly_rate: number
   ended_at: string
   duration_minutes: number | null
   final_cost: number | null

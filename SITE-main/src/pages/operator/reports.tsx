@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { StatusChip } from "@/components/vehicle-card"
+import { StatusChip, VehicleCategoryLabel, VehicleDisplayName } from "@/components/vehicle-card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
-import { supabase } from "@/lib/supabase"
+import { supabase, type VehicleCategory, type VehicleType } from "@/lib/supabase"
 import { PageBody, PageHeader, StatCard } from "@/pages/operator/_shared"
 
 type Row = {
@@ -13,7 +13,7 @@ type Row = {
   description: string
   status: "open" | "in_progress" | "resolved"
   created_at: string
-  vehicle: { code: string; type: string } | null
+  vehicle: { code: string; type: VehicleType; vehicle_type?: VehicleType | null; category?: VehicleCategory | null; brand?: string | null; model?: string | null; display_name?: string | null } | null
   user: { display_name: string; email: string } | null
 }
 
@@ -27,7 +27,7 @@ export function OperatorReportsPage() {
     setLoading(true)
     let q = supabase
       .from("vehicle_reports")
-      .select("id, issue_type, description, status, created_at, vehicle:vehicles(code, type), user:profiles(display_name, email)")
+      .select("id, issue_type, description, status, created_at, vehicle:vehicles(code, type, vehicle_type, category, brand, model, display_name), user:profiles(display_name, email)")
       .order("created_at", { ascending: false })
     if (filter !== "all") q = q.eq("status", filter)
     const { data } = await q
@@ -87,7 +87,14 @@ export function OperatorReportsPage() {
                 {rows.map((r, i) => (
                   <tr key={r.id} className={i % 2 === 1 ? "bg-[var(--surface-low)]" : ""}>
                     <td className="px-4 py-4 font-mono text-xs">{r.id.slice(0, 8).toUpperCase()}</td>
-                    <td className="px-4 py-4 font-semibold">{r.vehicle?.code} <span className="text-[var(--muted-foreground)] font-normal">· {r.vehicle?.type}</span></td>
+                    <td className="px-4 py-4">
+                      <p className="font-semibold">{r.vehicle?.code}</p>
+                      {r.vehicle && (
+                        <p className="text-xs text-[var(--muted-foreground)]">
+                          {VehicleDisplayName(r.vehicle)} - {VehicleCategoryLabel(r.vehicle)}
+                        </p>
+                      )}
+                    </td>
                     <td className="px-4 py-4">{r.user?.display_name}</td>
                     <td className="px-4 py-4 capitalize">{r.issue_type}</td>
                     <td className="px-4 py-4 max-w-xs truncate text-[var(--muted-foreground)]">{r.description}</td>

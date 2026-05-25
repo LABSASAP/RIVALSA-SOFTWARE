@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { ArrowLeft, CreditCard, Hop as Home, LogOut, MapPin, TriangleAlert } from "lucide-react"
+import { ArrowLeft, CreditCard, Home, LogOut, MapPin, TriangleAlert, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
@@ -10,18 +10,29 @@ export function AppShell({
   children,
   back,
   hideTabs,
+  variant = "default",
+  mainClassName,
 }: {
   title?: string
   children: ReactNode
   back?: string | true
   hideTabs?: boolean
+  variant?: "default" | "wide"
+  mainClassName?: string
 }) {
   const navigate = useNavigate()
   const { signOut } = useAuth()
   const { pathname } = useLocation()
+  const rideSectionActive =
+    pathname.startsWith("/nearby") ||
+    pathname.startsWith("/vehicles") ||
+    pathname.startsWith("/reservation") ||
+    pathname.startsWith("/ride")
+  const paymentSectionActive = pathname.startsWith("/payment-methods")
+  const profileSectionActive = pathname.startsWith("/profile")
 
   return (
-    <div className="app-shell flex flex-col">
+    <div className={cn("app-shell flex flex-col", variant === "wide" && "app-shell-wide")}>
       <header className="glass-header px-5 py-4 flex items-center gap-3">
         {back ? (
           <Button
@@ -39,35 +50,79 @@ export function AppShell({
             </div>
           </div>
         )}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <p className="label-sm text-[var(--muted-foreground)]">ZooSmart</p>
-          {title && <h1 className="text-xl font-bold tracking-tight">{title}</h1>}
+          {title && <h1 className="truncate text-xl font-bold tracking-tight">{title}</h1>}
         </div>
+
+        {variant === "wide" && !hideTabs && (
+          <nav className="hidden md:flex items-center gap-1 rounded-full bg-white/70 p-1 shadow-[0_12px_32px_rgba(25,28,29,0.06)] backdrop-blur-[20px]" aria-label="Navigazione utente">
+            <DesktopNavLink to="/nearby" icon={<Home className="size-4" />} label="Mezzi" active={rideSectionActive} />
+            <DesktopNavLink to="/payment-methods" icon={<CreditCard className="size-4" />} label="Pagamenti" active={paymentSectionActive} />
+            <DesktopNavLink to="/profile" icon={<UserRound className="size-4" />} label="Profilo" active={profileSectionActive} />
+          </nav>
+        )}
+
         <Button
           variant="ghost"
           size="icon-sm"
+          aria-label="Logout"
           onClick={async () => {
             await signOut()
             navigate("/login")
           }}
-          className="rounded-full bg-[var(--surface-high)] hover:bg-[var(--surface-low)]"
+          className={cn(
+            "rounded-full bg-[var(--surface-high)] hover:bg-[var(--surface-low)]",
+            variant === "wide" && "md:h-10 md:w-auto md:px-4 md:gap-2"
+          )}
         >
-          <LogOut />
+          <LogOut className="size-5" />
+          <span className={cn("sr-only", variant === "wide" && "md:not-sr-only md:text-sm md:font-bold")}>Logout</span>
         </Button>
       </header>
 
-      <main className="flex-1 px-5 pt-4 pb-28">{children}</main>
+      <main className={cn("flex-1 px-5 pt-4 pb-28", variant === "wide" && "app-shell-main-wide", mainClassName)}>
+        {children}
+      </main>
 
       {!hideTabs && (
-        <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-[calc(430px-1.5rem)] z-30">
-          <div className="rounded-3xl bg-white shadow-[0_12px_32px_rgba(25,28,29,0.08)] grid grid-cols-3 p-1.5">
-            <TabLink to="/nearby" icon={<Home className="size-5" />} label="Mezzi" active={pathname.startsWith("/nearby") || pathname.startsWith("/vehicles") || pathname.startsWith("/reservation") || pathname.startsWith("/ride")} />
-            <TabLink to="/payment-methods" icon={<CreditCard className="size-5" />} label="Pagamenti" active={pathname.startsWith("/payment-methods")} />
+        <nav className={cn("fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-[calc(430px-1.5rem)] z-30", variant === "wide" && "app-shell-tabs-wide")}>
+          <div className="grid grid-cols-4 rounded-3xl bg-white p-1.5 shadow-[0_12px_32px_rgba(25,28,29,0.08)]">
+            <TabLink to="/nearby" icon={<Home className="size-5" />} label="Mezzi" active={rideSectionActive} />
+            <TabLink to="/payment-methods" icon={<CreditCard className="size-5" />} label="Pagamenti" active={paymentSectionActive} />
             <TabLink to="/report" icon={<TriangleAlert className="size-5" />} label="Segnala" active={pathname.startsWith("/report")} />
+            <TabLink to="/profile" icon={<UserRound className="size-5" />} label="Profilo" active={profileSectionActive} />
           </div>
         </nav>
       )}
     </div>
+  )
+}
+
+function DesktopNavLink({
+  to,
+  icon,
+  label,
+  active,
+}: {
+  to: string
+  icon: ReactNode
+  label: string
+  active: boolean
+}) {
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors",
+        active
+          ? "bg-[var(--surface-low)] text-[var(--primary)]"
+          : "text-[var(--muted-foreground)] hover:bg-[var(--surface-low)] hover:text-[var(--foreground)]"
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </Link>
   )
 }
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Send, TriangleAlert } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
-import { TonalCard } from "@/components/vehicle-card"
+import { TonalCard, VehicleCategoryLabel, VehicleDisplayName } from "@/components/vehicle-card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -82,7 +82,7 @@ export function ReportVehiclePage() {
               <SelectContent>
                 {vehicles.map((v) => (
                   <SelectItem key={v.id} value={v.id}>
-                    {v.code} · {v.type}
+                    {v.code} - {VehicleDisplayName(v)} ({VehicleCategoryLabel(v)})
                   </SelectItem>
                 ))}
               </SelectContent>

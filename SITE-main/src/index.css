@@ -138,6 +138,10 @@
     position: relative;
   }
 
+  .app-shell-wide {
+    max-width: 430px;
+  }
+
   .glass-header {
     position: sticky;
     top: 0;
@@ -170,5 +174,338 @@
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+  }
+
+  .nearby-layout {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .nearby-sidebar-sticky {
+    min-width: 0;
+  }
+
+  .nearby-selected-panel {
+    box-shadow: 0 12px 32px rgba(25, 28, 29, 0.06);
+  }
+
+  .nearby-vehicle-card {
+    padding: 1rem;
+  }
+
+  .nearby-vehicle-icon {
+    display: flex;
+    width: 3.25rem;
+    height: 3.25rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1.25rem;
+  }
+
+  .nearby-vehicle-icon-bike {
+    background: var(--secondary-container);
+    color: var(--secondary-foreground);
+  }
+
+  .nearby-vehicle-icon-scooter {
+    background: linear-gradient(135deg, var(--primary), var(--primary-container));
+    color: white;
+  }
+
+  .nearby-vehicle-icon-car {
+    background: #fff3d6;
+    color: var(--warning);
+  }
+
+  .vehicle-map {
+    position: relative;
+  }
+
+  .vehicle-map-frame {
+    position: relative;
+    height: min(620px, max(420px, calc(100svh - 220px)));
+    overflow: hidden;
+    border-radius: 1.75rem;
+    background: var(--surface-low);
+    box-shadow: 0 12px 32px rgba(25, 28, 29, 0.06);
+  }
+
+  .vehicle-map .leaflet-container {
+    background: var(--surface-low);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+
+  .vehicle-map .leaflet-tile {
+    filter: saturate(0.86) contrast(1.02);
+  }
+
+  .vehicle-map .leaflet-control-attribution {
+    border-top-left-radius: 9999px;
+    background: rgba(255, 255, 255, 0.78);
+    color: var(--muted-foreground);
+    font-size: 0.625rem;
+    padding: 0.125rem 0.5rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .vehicle-map .leaflet-control-attribution a {
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .vehicle-map-topbar {
+    pointer-events: none;
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    z-index: 500;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+  }
+
+  .vehicle-map-filter-bar {
+    pointer-events: auto;
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    gap: 0.375rem;
+    overflow-x: auto;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.76);
+    padding: 0.375rem;
+    box-shadow: 0 12px 32px rgba(25, 28, 29, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    scrollbar-width: none;
+  }
+
+  .vehicle-map-filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .vehicle-map-filter-chip {
+    display: inline-flex;
+    height: 2.25rem;
+    min-width: max-content;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    padding: 0 0.75rem;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    font-weight: 800;
+    transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .vehicle-map-filter-chip-active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-container));
+    color: white;
+    box-shadow: 0 12px 32px rgba(0, 64, 161, 0.18);
+  }
+
+  .vehicle-map-round-control,
+  .vehicle-map-zoom button {
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.78);
+    color: var(--primary);
+    box-shadow: 0 12px 32px rgba(25, 28, 29, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: background 160ms ease, transform 160ms ease;
+  }
+
+  .vehicle-map-round-control:hover,
+  .vehicle-map-zoom button:hover {
+    background: rgba(255, 255, 255, 0.92);
+    transform: translateY(-1px);
+  }
+
+  .vehicle-map-count-pill {
+    position: absolute;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 500;
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.78);
+    padding: 0 0.875rem;
+    color: var(--foreground);
+    font-size: 0.75rem;
+    font-weight: 800;
+    box-shadow: 0 12px 32px rgba(25, 28, 29, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .vehicle-map-zoom {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 3.75rem;
+    z-index: 500;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .vehicle-map-marker {
+    background: transparent;
+    border: 0;
+  }
+
+  .vehicle-map-marker-inner {
+    display: flex;
+    width: 2.875rem;
+    height: 2.875rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1.25rem;
+    position: relative;
+    box-shadow:
+      0 0 0 0.375rem rgba(255, 255, 255, 0.76),
+      0 12px 32px rgba(25, 28, 29, 0.12);
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .vehicle-map-marker-selected .vehicle-map-marker-inner {
+    transform: translateY(-0.25rem) scale(1.12);
+    box-shadow:
+      0 0 0 0.375rem rgba(255, 255, 255, 0.86),
+      0 0 0 0.625rem rgba(0, 64, 161, 0.26),
+      0 16px 40px rgba(25, 28, 29, 0.18);
+  }
+
+  .vehicle-map-marker-bike {
+    background: var(--secondary-container);
+    color: var(--secondary-foreground);
+  }
+
+  .vehicle-map-marker-scooter {
+    background: linear-gradient(135deg, var(--primary), var(--primary-container));
+    color: white;
+  }
+
+  .vehicle-map-marker-car {
+    background: #fff3d6;
+    color: var(--warning);
+  }
+
+  .vehicle-map-mobile-sheet {
+    position: fixed;
+    left: 50%;
+    bottom: 5.25rem;
+    z-index: 50;
+    width: calc(100% - 1.5rem);
+    max-width: calc(430px - 1.5rem);
+    transform: translateX(-50%);
+  }
+
+  .vehicle-selection-card {
+    border-radius: 1.5rem;
+    background: rgba(255, 255, 255, 0.88);
+    padding: 1rem;
+    box-shadow: 0 12px 32px rgba(25, 28, 29, 0.08);
+    color: var(--foreground);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .vehicle-selection-close {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--surface-high);
+    color: var(--muted-foreground);
+  }
+
+  .vehicle-selection-field {
+    min-width: 0;
+    border-radius: 1.25rem;
+    background: var(--surface-low);
+    padding: 0.75rem;
+  }
+
+  .vehicle-selection-field span {
+    display: block;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .vehicle-selection-field strong {
+    display: block;
+    margin-top: 0.25rem;
+    overflow-wrap: anywhere;
+    font-size: 0.8125rem;
+    line-height: 1.25;
+  }
+
+  @media (min-width: 768px) {
+    .app-shell-wide {
+      max-width: min(1180px, calc(100% - 3rem));
+    }
+
+    .app-shell-main-wide {
+      padding-bottom: 2rem;
+    }
+
+    .app-shell-tabs-wide {
+      display: none;
+    }
+
+    .nearby-layout {
+      grid-template-columns: minmax(0, 1fr) minmax(330px, 360px);
+      align-items: start;
+      gap: 1.25rem;
+    }
+
+    .nearby-sidebar-sticky {
+      position: sticky;
+      top: 5.75rem;
+      max-height: calc(100svh - 7rem);
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+
+    .vehicle-map-frame {
+      height: calc(100svh - 8rem);
+      min-height: 560px;
+      max-height: 760px;
+    }
+
+    .vehicle-map-topbar {
+      top: 1rem;
+      left: 1rem;
+      right: 1rem;
+    }
+
+    .vehicle-map-count-pill {
+      left: 1rem;
+      bottom: 1rem;
+    }
+
+    .vehicle-map-zoom {
+      right: 1rem;
+      bottom: 4rem;
+    }
   }
 }

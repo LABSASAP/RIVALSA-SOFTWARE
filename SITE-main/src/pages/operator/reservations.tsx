@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { TriangleAlert } from "lucide-react"
-import { StatusChip } from "@/components/vehicle-card"
+import { StatusChip, VehicleCategoryLabel, VehicleDisplayName } from "@/components/vehicle-card"
 import { Spinner } from "@/components/ui/spinner"
-import { supabase } from "@/lib/supabase"
+import { supabase, type VehicleCategory, type VehicleType } from "@/lib/supabase"
 import { PageBody, PageHeader, StatCard } from "@/pages/operator/_shared"
 
 type Row = {
@@ -12,7 +12,7 @@ type Row = {
   expires_at: string
   converted_ride_id: string | null
   user: { display_name: string; email: string } | null
-  vehicle: { code: string; type: string; status: string } | null
+  vehicle: { code: string; type: VehicleType; vehicle_type?: VehicleType | null; category?: VehicleCategory | null; brand?: string | null; model?: string | null; display_name?: string | null; status: string } | null
 }
 
 export function OperatorReservationsPage() {
@@ -25,7 +25,7 @@ export function OperatorReservationsPage() {
     await supabase.rpc("reservation_expire_stale")
     const { data } = await supabase
       .from("reservations")
-      .select("id, status, created_at, expires_at, converted_ride_id, user:profiles(display_name,email), vehicle:vehicles(code,type,status)")
+      .select("id, status, created_at, expires_at, converted_ride_id, user:profiles(display_name,email), vehicle:vehicles(code,type,vehicle_type,category,brand,model,display_name,status)")
       .eq("status", "active")
       .order("expires_at", { ascending: true })
     setRows((data as unknown as Row[]) ?? [])
@@ -69,7 +69,7 @@ export function OperatorReservationsPage() {
             <table className="w-full">
               <thead>
                 <tr className="text-left">
-                  {["ID", "Utente", "Mezzo", "Tipo", "Stato mezzo", "Creata", "Scade", "Residuo", ""].map((h) => (
+                  {["ID", "Utente", "Mezzo", "Categoria", "Stato mezzo", "Creata", "Scade", "Residuo", ""].map((h) => (
                     <th key={h} className="px-4 py-3 label-sm text-[var(--muted-foreground)]">{h}</th>
                   ))}
                 </tr>
@@ -84,8 +84,11 @@ export function OperatorReservationsPage() {
                     <tr key={r.id} className={i % 2 === 1 ? "bg-[var(--surface-low)]" : ""}>
                       <td className="px-4 py-4 font-mono text-xs">{r.id.slice(0, 8).toUpperCase()}</td>
                       <td className="px-4 py-4">{r.user?.display_name}</td>
-                      <td className="px-4 py-4 font-semibold">{r.vehicle?.code}</td>
-                      <td className="px-4 py-4 capitalize">{r.vehicle?.type}</td>
+                      <td className="px-4 py-4">
+                        <p className="font-semibold">{r.vehicle?.code}</p>
+                        {r.vehicle && <p className="text-xs text-[var(--muted-foreground)]">{VehicleDisplayName(r.vehicle)}</p>}
+                      </td>
+                      <td className="px-4 py-4 capitalize">{r.vehicle ? VehicleCategoryLabel(r.vehicle) : "N/D"}</td>
                       <td className="px-4 py-4"><StatusChip status={r.vehicle?.status ?? "—"} /></td>
                       <td className="px-4 py-4 text-sm text-[var(--muted-foreground)] whitespace-nowrap">
                         {new Date(r.created_at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}

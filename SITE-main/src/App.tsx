@@ -7,6 +7,7 @@ import { ReservationPage } from "@/pages/reservation"
 import { RidePage } from "@/pages/ride"
 import { RideSummaryPage } from "@/pages/ride-summary"
 import { PaymentMethodsPage } from "@/pages/payment-methods"
+import { ProfilePage } from "@/pages/profile"
 import { ReportVehiclePage } from "@/pages/report-vehicle"
 import { OperatorLayout } from "@/pages/operator/layout"
 import { OperatorReportsPage } from "@/pages/operator/reports"
@@ -90,6 +91,7 @@ export function App() {
       <Route path="/ride" element={<Protected role="user"><RidePage /></Protected>} />
       <Route path="/ride/:id/summary" element={<Protected role="user"><RideSummaryPage /></Protected>} />
       <Route path="/payment-methods" element={<Protected role="user"><PaymentMethodsPage /></Protected>} />
+      <Route path="/profile" element={<Protected role="user"><ProfilePage /></Protected>} />
       <Route path="/report" element={<Protected role="user"><ReportVehiclePage /></Protected>} />
 
       <Route path="/operator" element={<Protected role="operator"><OperatorLayout /></Protected>}>

@@ -3,7 +3,16 @@ import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import { Timer, Clock as Unlock } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
-import { StatusChip, TonalCard, VehicleEmoji, VehicleTypeLabel } from "@/components/vehicle-card"
+import {
+  StatusChip,
+  TonalCard,
+  VehicleCategoryLabel,
+  VehicleDisplayName,
+  VehicleEmoji,
+  VehicleIconType,
+  VehicleModelLabel,
+  VehiclePricingLabel,
+} from "@/components/vehicle-card"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { supabase, type Reservation, type Vehicle } from "@/lib/supabase"
@@ -94,13 +103,19 @@ export function ReservationPage() {
     <AppShell title="Prenotazione attiva" back="/nearby">
       <TonalCard className="text-center">
         <div className="flex justify-center mb-3">
-          <VehicleEmoji type={vehicle.type} />
+          <VehicleEmoji type={VehicleIconType(vehicle)} />
         </div>
         <p className="label-sm text-[var(--muted-foreground)]">{vehicle.code}</p>
-        <h2 className="text-2xl font-extrabold mt-1">{VehicleTypeLabel(vehicle.type)}</h2>
+        <h2 className="text-2xl font-extrabold mt-1">{VehicleDisplayName(vehicle)}</h2>
+        <p className="mt-1 text-sm font-semibold text-[var(--muted-foreground)]">{VehicleModelLabel(vehicle)}</p>
         <div className="mt-3 flex justify-center">
           <StatusChip status="reserved" />
         </div>
+      </TonalCard>
+
+      <TonalCard className="mt-4">
+        <p className="label-sm text-[var(--muted-foreground)]">TARIFFA {VehicleCategoryLabel(vehicle).toUpperCase()}</p>
+        <p className="mt-2 text-sm font-bold text-[var(--primary)]">{VehiclePricingLabel(vehicle)}</p>
       </TonalCard>
 
       <TonalCard className={`mt-4 ${expired ? "" : "ghost-active"}`}>
