@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:test-users": "node scripts/seed-test-users.mjs --dev --out supabase/seed_test_users_dev.generated.sql",
+    "seed:test-users:stdout": "node scripts/seed-test-users.mjs --dev --stdout"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -44,6 +46,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
+    "bcryptjs": "^3.0.3",
     "typescript": "~5.9.3",
     "vite": "^7.3.1"
   }

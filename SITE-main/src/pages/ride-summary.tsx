@@ -13,7 +13,7 @@ import {
 } from "@/components/vehicle-card"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { supabase, type Ride, type RideEndDetails, type Vehicle } from "@/lib/supabase"
+import { supabase, type CreditTransaction, type Ride, type RideEndDetails, type Vehicle } from "@/lib/supabase"
 import { parsePointEwkbHex } from "@/lib/postgis"
 
 type Payment = { id: string; amount: number; status: string; payment_method_id: string }
@@ -27,6 +27,8 @@ export function RideSummaryPage() {
   const [rideDetails, setRideDetails] = useState<RideEndDetails | null>(null)
   const [payment, setPayment] = useState<Payment | null>(null)
   const [method, setMethod] = useState<Method | null>(null)
+  const [earnedTransactions, setEarnedTransactions] = useState<CreditTransaction[]>([])
+  const [redeemedTransactions, setRedeemedTransactions] = useState<CreditTransaction[]>([])
   const [endLoc, setEndLoc] = useState<{ lat: number; lng: number } | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -57,6 +59,20 @@ export function RideSummaryPage() {
         const point = parsePointEwkbHex((fallback.data as { end_location?: string } | null)?.end_location)
         if (point) setEndLoc(point)
       }
+      const { data: tx } = await supabase
+        .from("credit_transactions")
+        .select("*")
+        .eq("ride_id", id)
+        .eq("type", "earned")
+        .order("created_at", { ascending: true })
+      setEarnedTransactions((tx as CreditTransaction[]) ?? [])
+      const { data: redeemedTx } = await supabase
+        .from("credit_transactions")
+        .select("*")
+        .eq("ride_id", id)
+        .eq("type", "redeemed")
+        .order("created_at", { ascending: true })
+      setRedeemedTransactions((redeemedTx as CreditTransaction[]) ?? [])
       setLoading(false)
     })()
   }, [id])
@@ -84,7 +100,7 @@ export function RideSummaryPage() {
         </div>
         <p className="text-sm text-[var(--muted-foreground)] mt-3">Pagamento completato</p>
         <p className="text-5xl font-extrabold mt-2 font-display tabular-nums">
-          {ride.final_cost?.toFixed(2)} €
+          {formatSummaryMoney(ride.final_cost)}
         </p>
         <p className="text-sm text-[var(--muted-foreground)] mt-1">
           {ride.duration_minutes} {ride.duration_minutes === 1 ? "minuto" : "minuti"} di corsa
@@ -103,10 +119,22 @@ export function RideSummaryPage() {
           label="Tariffa"
           value={`${VehicleCategoryLabel({ ...vehicle, category: rideDetails?.vehicle_category ?? vehicle.category })}: ${formatVehicleMoney(rideDetails?.unlock_fee ?? vehicle.unlock_fee)} sblocco - ${formatVehicleMoney(rideDetails?.price_per_minute ?? vehicle.price_per_minute)}/min`}
         />
-        <RowCard label="Metodo di pagamento" value={method ? `${method.type.toUpperCase()} •••• ${method.last4}` : "—"} />
+        <RowCard label="Metodo di pagamento" value={method ? `${method.type.toUpperCase()} **** ${method.last4}` : "-"} />
+        <RowCard label="Costo originale" value={formatSummaryMoney(rideDetails?.original_cost ?? ride.original_cost ?? ride.final_cost)} />
+        <RowCard label="Sconto credito" value={formatSummaryMoney(rideDetails?.credit_discount ?? ride.credit_discount ?? 0)} />
+        <RowCard label="Costo finale" value={formatSummaryMoney(ride.final_cost)} />
         <RowCard label="Stato pagamento">
           <StatusChip status={payment?.status ?? "pending"} />
         </RowCard>
+        {!!rideDetails?.total_paused_seconds && (
+          <RowCard label="Tempo in pausa" value={`${Math.floor(rideDetails.total_paused_seconds / 60)} min ${rideDetails.total_paused_seconds % 60} sec`} />
+        )}
+        {redeemedTransactions.map((tx) => (
+          <RowCard key={tx.id} label={tx.description || "Credito applicato"} value={`-${formatSummaryMoney(Number(tx.amount))}`} />
+        ))}
+        {earnedTransactions.map((tx) => (
+          <RowCard key={tx.id} label={tx.description || "Punti promozionali"} value={`+${tx.points} punti`} />
+        ))}
         {endLoc && <RowCard label="Posizione finale" value={`${endLoc.lat.toFixed(5)}, ${endLoc.lng.toFixed(5)}`} mono />}
       </div>
 
@@ -115,6 +143,10 @@ export function RideSummaryPage() {
       </Button>
     </AppShell>
   )
+}
+
+function formatSummaryMoney(value: number | null | undefined) {
+  return `${Number(value ?? 0).toFixed(2)} EUR`
 }
 
 function RowCard({ label, value, mono, children }: { label: string; value?: string; mono?: boolean; children?: React.ReactNode }) {

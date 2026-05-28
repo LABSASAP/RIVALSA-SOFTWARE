@@ -9,13 +9,25 @@ import { RideSummaryPage } from "@/pages/ride-summary"
 import { PaymentMethodsPage } from "@/pages/payment-methods"
 import { ProfilePage } from "@/pages/profile"
 import { ReportVehiclePage } from "@/pages/report-vehicle"
+import { CreditsPage } from "@/pages/credits"
+import { SupportPage } from "@/pages/support"
 import { OperatorLayout } from "@/pages/operator/layout"
 import { OperatorReportsPage } from "@/pages/operator/reports"
 import { OperatorReservationsPage } from "@/pages/operator/reservations"
 import { OperatorEndLocationPage } from "@/pages/operator/end-location"
 import { OperatorUsersPage } from "@/pages/operator/users"
+import { OperatorSupportPage } from "@/pages/operator/support"
+import { OperatorFleetPage } from "@/pages/operator/fleet"
+import { OperatorTrackingPage } from "@/pages/operator/tracking"
+import { OperatorMaintenancePage } from "@/pages/operator/maintenance"
+import { OperatorBonusesPage } from "@/pages/operator/bonuses"
+import { PublicAdminLayout } from "@/pages/public-admin/layout"
+import { PublicAdminDashboardPage } from "@/pages/public-admin/dashboard"
+import { PublicAdminZonesPage } from "@/pages/public-admin/zones"
+import { PublicAdminRoutesPage } from "@/pages/public-admin/routes"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import type { Role } from "@/lib/supabase"
 
 function Splash() {
   return (
@@ -59,13 +71,19 @@ function SetupRequired() {
   )
 }
 
-function Protected({ children, role }: { children: React.ReactNode; role?: "user" | "operator" }) {
+function roleHome(role: Role | undefined) {
+  if (role === "operator") return "/operator"
+  if (role === "public_admin") return "/public-admin"
+  return "/nearby"
+}
+
+function Protected({ children, role }: { children: React.ReactNode; role?: Role }) {
   const { session, profile, loading } = useAuth()
   if (loading) return <Splash />
   if (!session) return <Navigate to="/login" replace />
   if (!profile) return <SetupRequired />
   if (role && profile?.role !== role) {
-    return <Navigate to={profile?.role === "operator" ? "/operator" : "/"} replace />
+    return <Navigate to={roleHome(profile?.role)} replace />
   }
   return <>{children}</>
 }
@@ -75,8 +93,7 @@ function RootRedirect() {
   if (loading) return <Splash />
   if (!session) return <Navigate to="/login" replace />
   if (!profile) return <SetupRequired />
-  if (profile?.role === "operator") return <Navigate to="/operator" replace />
-  return <Navigate to="/nearby" replace />
+  return <Navigate to={roleHome(profile.role)} replace />
 }
 
 export function App() {
@@ -93,12 +110,25 @@ export function App() {
       <Route path="/payment-methods" element={<Protected role="user"><PaymentMethodsPage /></Protected>} />
       <Route path="/profile" element={<Protected role="user"><ProfilePage /></Protected>} />
       <Route path="/report" element={<Protected role="user"><ReportVehiclePage /></Protected>} />
+      <Route path="/credits" element={<Protected role="user"><CreditsPage /></Protected>} />
+      <Route path="/support" element={<Protected role="user"><SupportPage /></Protected>} />
 
       <Route path="/operator" element={<Protected role="operator"><OperatorLayout /></Protected>}>
         <Route index element={<OperatorReportsPage />} />
         <Route path="reservations" element={<OperatorReservationsPage />} />
         <Route path="end-location" element={<OperatorEndLocationPage />} />
         <Route path="users" element={<OperatorUsersPage />} />
+        <Route path="support" element={<OperatorSupportPage />} />
+        <Route path="fleet" element={<OperatorFleetPage />} />
+        <Route path="tracking" element={<OperatorTrackingPage />} />
+        <Route path="maintenance" element={<OperatorMaintenancePage />} />
+        <Route path="bonuses" element={<OperatorBonusesPage />} />
+      </Route>
+
+      <Route path="/public-admin" element={<Protected role="public_admin"><PublicAdminLayout /></Protected>}>
+        <Route index element={<PublicAdminDashboardPage />} />
+        <Route path="zones" element={<PublicAdminZonesPage />} />
+        <Route path="routes" element={<PublicAdminRoutesPage />} />
       </Route>
 
       <Route path="*" element={<RootRedirect />} />

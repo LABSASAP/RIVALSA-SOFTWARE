@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom"
-import { ClipboardList, LogOut, MapPin, Timer, Users } from "lucide-react"
+import { Activity, ClipboardList, Gift, Headphones, LogOut, MapPin, Timer, Truck, Users, Wrench } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
@@ -7,6 +7,11 @@ import { cn } from "@/lib/utils"
 const NAV = [
   { to: "/operator", label: "Report Malfunzionamenti", icon: ClipboardList, end: true },
   { to: "/operator/reservations", label: "Prenotazioni Attive", icon: Timer },
+  { to: "/operator/support", label: "Chat Supporto", icon: Headphones },
+  { to: "/operator/fleet", label: "Distribuzione Flotta", icon: Truck },
+  { to: "/operator/tracking", label: "Tracking Mezzi", icon: Activity },
+  { to: "/operator/maintenance", label: "Manutenzione", icon: Wrench },
+  { to: "/operator/bonuses", label: "Bonus Parcheggio", icon: Gift },
   { to: "/operator/end-location", label: "Posizione Fine Corsa", icon: MapPin },
   { to: "/operator/users", label: "Gestione Utenti", icon: Users },
 ]

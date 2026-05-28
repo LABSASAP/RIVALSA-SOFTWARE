@@ -67,7 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const refreshProfile = async () => {
-    if (session?.user) await loadProfile(session.user.id)
+    if (session?.user) {
+      const nextProfile = await loadProfile(session.user.id)
+      setProfile(nextProfile)
+    }
   }
 
   return (

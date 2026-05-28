@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"
-import { CreditCard, LogOut, ShieldCheck, UserRound } from "lucide-react"
+import { CreditCard, Gift, Headphones, LogOut, ShieldCheck, UserRound } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { StatusChip, TonalCard } from "@/components/vehicle-card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context"
 const ROLE_LABEL: Record<string, string> = {
   user: "Utente",
   operator: "Operatore",
+  public_admin: "Amministrazione comunale",
 }
 
 export function ProfilePage() {
@@ -57,6 +58,35 @@ export function ProfilePage() {
           </Button>
         </div>
       </TonalCard>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <TonalCard>
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 items-center justify-center rounded-2xl bg-[var(--surface-low)]">
+              <Gift className="size-5 text-[var(--primary)]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">Crediti</p>
+              <Button asChild variant="ghost" size="sm" className="mt-1 h-8 rounded-xl bg-[var(--surface-low)] px-3 font-bold text-[var(--primary)]">
+                <Link to="/credits">Apri</Link>
+              </Button>
+            </div>
+          </div>
+        </TonalCard>
+        <TonalCard>
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 items-center justify-center rounded-2xl bg-[var(--surface-low)]">
+              <Headphones className="size-5 text-[var(--primary)]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">Supporto</p>
+              <Button asChild variant="ghost" size="sm" className="mt-1 h-8 rounded-xl bg-[var(--surface-low)] px-3 font-bold text-[var(--primary)]">
+                <Link to="/support">Apri</Link>
+              </Button>
+            </div>
+          </div>
+        </TonalCard>
+      </div>
 
       <Button
         variant="ghost"

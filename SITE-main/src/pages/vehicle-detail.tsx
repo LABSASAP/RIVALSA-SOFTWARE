@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
+import { Copy, LockKeyhole } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import {
   BatteryBar,
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { supabase, type Vehicle } from "@/lib/supabase"
 import { useAuth } from "@/lib/auth-context"
+import { copyVehicleDetails } from "@/lib/share-vehicle"
 
 export function VehicleDetailPage() {
   const { id } = useParams()
@@ -54,6 +56,13 @@ export function VehicleDetailPage() {
     navigate("/reservation")
   }
 
+  const shareVehicle = async () => {
+    if (!vehicle) return
+    const ok = await copyVehicleDetails(vehicle, window.location.href).catch(() => false)
+    if (ok) toast.success("Dettagli copiati")
+    else toast.error("Copia non disponibile")
+  }
+
   if (loading) {
     return (
       <AppShell title="Dettaglio mezzo" back="/nearby">
@@ -69,7 +78,8 @@ export function VehicleDetailPage() {
     )
   }
 
-  const canReserve = profile?.status === "active" && vehicle.status === "available"
+  const isLocked = !!vehicle.is_remote_locked
+  const canReserve = profile?.status === "active" && vehicle.status === "available" && !isLocked
 
   return (
     <AppShell title="Dettaglio mezzo" back="/nearby">
@@ -81,9 +91,25 @@ export function VehicleDetailPage() {
         <h2 className="text-2xl font-extrabold mt-1">{VehicleDisplayName(vehicle)}</h2>
         <p className="mt-1 text-sm font-semibold text-[var(--muted-foreground)]">{VehicleModelLabel(vehicle)}</p>
         <div className="mt-3 flex justify-center">
-          <StatusChip status={vehicle.status} />
+          <StatusChip status={isLocked ? "remote_locked" : vehicle.status} />
         </div>
       </TonalCard>
+
+      {isLocked && (
+        <TonalCard className="mt-4 bg-[#ffe5e5]">
+          <div className="flex items-start gap-3">
+            <div className="flex size-11 items-center justify-center rounded-2xl bg-white/70 text-[var(--destructive)]">
+              <LockKeyhole className="size-5" />
+            </div>
+            <div>
+              <p className="font-bold text-[var(--destructive)]">Bloccato da remoto - non utilizzabile</p>
+              <p className="mt-1 text-sm text-[var(--destructive)]/80">
+                {vehicle.remote_lock_reason || "Il mezzo non e disponibile per motivi operativi."}
+              </p>
+            </div>
+          </div>
+        </TonalCard>
+      )}
 
       <div className="grid grid-cols-2 gap-3 mt-4">
         <TonalCard>
@@ -115,20 +141,31 @@ export function VehicleDetailPage() {
         </TonalCard>
       </div>
 
-      <Button
-        onClick={reserve}
-        disabled={!canReserve || reserving}
-        className="mt-6 w-full h-14 rounded-2xl btn-primary-grad font-bold text-base"
-      >
-        {reserving ? <Spinner /> : "Prenota mezzo"}
-      </Button>
+      <div className="mt-6 grid grid-cols-[1fr_auto] gap-3">
+        <Button
+          onClick={reserve}
+          disabled={!canReserve || reserving}
+          className="h-14 rounded-2xl btn-primary-grad font-bold text-base"
+        >
+          {reserving ? <Spinner /> : "Prenota mezzo"}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          aria-label="Copia dettagli mezzo"
+          onClick={shareVehicle}
+          className="h-14 w-14 rounded-2xl bg-[var(--surface-high)] text-[var(--primary)]"
+        >
+          <Copy className="size-5" />
+        </Button>
+      </div>
 
       {!canReserve && profile?.status !== "active" && (
         <p className="mt-3 text-sm text-[var(--destructive)] text-center">
           Il tuo account non è attivo, non puoi prenotare.
         </p>
       )}
-      {!canReserve && vehicle.status !== "available" && profile?.status === "active" && (
+      {!canReserve && (vehicle.status !== "available" || isLocked) && profile?.status === "active" && (
         <p className="mt-3 text-sm text-[var(--muted-foreground)] text-center">
           Mezzo non disponibile in questo momento.
         </p>

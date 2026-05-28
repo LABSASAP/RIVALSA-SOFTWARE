@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react"
 import { divIcon, type Map as LeafletMap } from "leaflet"
-import { Circle, CircleMarker, MapContainer, Marker, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet"
-import { Bike, CarFront, CircleDot, LocateFixed, Minus, Navigation, Plus, X } from "lucide-react"
+import { Circle, CircleMarker, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap, useMapEvents } from "react-leaflet"
+import { Bike, CarFront, CircleDot, LocateFixed, LockKeyhole, Minus, Navigation, Plus, X } from "lucide-react"
 import {
   BatteryMeter,
   StatusChip,
@@ -14,7 +14,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
-import type { NearbyVehicle } from "@/lib/supabase"
+import type { NearbyVehicle, UrbanZone } from "@/lib/supabase"
+import type { LatLng, PlannedRoute } from "@/lib/route-planning"
 
 export type MapCenter = {
   lat: number
@@ -26,6 +27,9 @@ export type VehicleFilter = "all" | NearbyVehicle["type"]
 type VehicleMapProps = {
   center: MapCenter
   vehicles: NearbyVehicle[]
+  zones?: UrbanZone[]
+  destination?: LatLng | null
+  plannedRoute?: PlannedRoute | null
   radiusM: number
   loading: boolean
   filter: VehicleFilter
@@ -35,12 +39,14 @@ type VehicleMapProps = {
   onUseMyLocation: () => void
   onSelectVehicle: (id: string | null) => void
   onOpenVehicle: (id: string) => void
+  onCopyVehicle?: (vehicle: NearbyVehicle) => void
 }
 
 type VehicleDetailCardProps = {
   vehicle: NearbyVehicle
   onClose?: () => void
   onOpenVehicle: (id: string) => void
+  onCopyVehicle?: (vehicle: NearbyVehicle) => void
   className?: string
 }
 
@@ -64,6 +70,19 @@ const markerLabels: Record<NearbyVehicle["type"], string> = {
   scooter: "MO",
   car: "EV",
 }
+
+const zoneTone: Record<UrbanZone["type"], { color: string; fill: string; label: string }> = {
+  road_work: { color: "#b26a00", fill: "#fff3d6", label: "Lavori" },
+  restricted_area: { color: "#c62828", fill: "#ffe5e5", label: "Interdetta" },
+  sensitive_zone: { color: "#2e7d32", fill: "#dff4e5", label: "Sensibile" },
+}
+
+const destinationIcon = divIcon({
+  className: "vehicle-map-destination-marker",
+  html: '<div class="vehicle-map-destination-marker-inner"><span>GO</span></div>',
+  iconSize: [46, 46],
+  iconAnchor: [23, 43],
+})
 
 function createVehicleIcon(type: NearbyVehicle["type"], selected: boolean) {
   return divIcon({
@@ -194,7 +213,9 @@ function MapZoomControls() {
   )
 }
 
-export function VehicleDetailCard({ vehicle, onClose, onOpenVehicle, className }: VehicleDetailCardProps) {
+export function VehicleDetailCard({ vehicle, onClose, onOpenVehicle, onCopyVehicle, className }: VehicleDetailCardProps) {
+  const isLocked = !!vehicle.is_remote_locked
+
   return (
     <div className={cn("vehicle-selection-card", className)}>
       <div className="flex items-start justify-between gap-3">
@@ -206,7 +227,7 @@ export function VehicleDetailCard({ vehicle, onClose, onOpenVehicle, className }
           <p className="mt-1 text-sm font-semibold text-[var(--muted-foreground)]">{VehicleModelLabel(vehicle)}</p>
         </div>
         <div className="flex items-center gap-2">
-          <StatusChip status={vehicle.status} />
+          <StatusChip status={isLocked ? "remote_locked" : vehicle.status} />
           {onClose && (
             <button
               type="button"
@@ -223,6 +244,18 @@ export function VehicleDetailCard({ vehicle, onClose, onOpenVehicle, className }
       <div className="mt-4 rounded-3xl bg-[var(--surface-low)] p-4">
         <BatteryMeter level={vehicle.battery_level} />
       </div>
+
+      {isLocked && (
+        <div className="mt-4 rounded-3xl bg-[#ffe5e5] p-4 text-[var(--destructive)]">
+          <div className="flex items-start gap-3">
+            <LockKeyhole className="mt-0.5 size-5 shrink-0" />
+            <div>
+              <p className="font-bold">Bloccato da remoto - non utilizzabile</p>
+              <p className="mt-1 text-sm opacity-80">{vehicle.remote_lock_reason || "Il mezzo non e prenotabile per motivi operativi."}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <div className="vehicle-selection-field">
@@ -251,13 +284,23 @@ export function VehicleDetailCard({ vehicle, onClose, onOpenVehicle, className }
         </div>
       </div>
 
-      <Button
-        type="button"
-        onClick={() => onOpenVehicle(vehicle.id)}
-        className="mt-4 h-12 w-full rounded-2xl btn-primary-grad font-bold text-base"
-      >
-        Vedi dettaglio
-      </Button>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          onClick={() => onCopyVehicle?.(vehicle)}
+          variant="ghost"
+          className="h-12 rounded-2xl bg-[var(--surface-high)] font-bold text-[var(--primary)]"
+        >
+          Copia dettagli
+        </Button>
+        <Button
+          type="button"
+          onClick={() => onOpenVehicle(vehicle.id)}
+          className="h-12 rounded-2xl btn-primary-grad font-bold text-base"
+        >
+          Vedi dettaglio
+        </Button>
+      </div>
     </div>
   )
 }
@@ -265,6 +308,9 @@ export function VehicleDetailCard({ vehicle, onClose, onOpenVehicle, className }
 export function VehicleMap({
   center,
   vehicles,
+  zones = [],
+  destination,
+  plannedRoute,
   radiusM,
   loading,
   filter,
@@ -274,6 +320,7 @@ export function VehicleMap({
   onUseMyLocation,
   onSelectVehicle,
   onOpenVehicle,
+  onCopyVehicle,
 }: VehicleMapProps) {
   const mapCenter = useMemo<[number, number]>(() => [center.lat, center.lng], [center.lat, center.lng])
   const selectedVehicle = vehicles.find((vehicle) => vehicle.id === selectedVehicleId) ?? null
@@ -327,6 +374,49 @@ export function VehicleMap({
               weight: 5,
             }}
           />
+          {plannedRoute?.polyline?.length ? (
+            <Polyline
+              positions={plannedRoute.polyline.map((point) => [point.lat, point.lng])}
+              pathOptions={{
+                color: plannedRoute.isSimulated ? "#b26a00" : "#0040a1",
+                opacity: 0.86,
+                weight: 5,
+                dashArray: plannedRoute.isSimulated ? "8 10" : undefined,
+              }}
+            >
+              <Tooltip direction="top" opacity={0.95}>
+                {plannedRoute.distanceKm.toFixed(2)} km - {plannedRoute.durationMinutes} min
+              </Tooltip>
+            </Polyline>
+          ) : null}
+          {destination && (
+            <Marker position={[destination.lat, destination.lng]} icon={destinationIcon} title="Destinazione">
+              <Tooltip direction="top" offset={[0, -34]} opacity={0.95}>
+                Destinazione
+              </Tooltip>
+            </Marker>
+          )}
+          {zones.map((zone) => {
+            const tone = zoneTone[zone.type]
+            return (
+              <Circle
+                key={zone.id}
+                center={[zone.center_lat, zone.center_lng]}
+                radius={zone.radius_meters}
+                pathOptions={{
+                  color: tone.color,
+                  fillColor: tone.fill,
+                  fillOpacity: 0.18,
+                  opacity: 0.42,
+                  weight: 2,
+                }}
+              >
+                <Tooltip direction="top" opacity={0.95}>
+                  {tone.label}: {zone.name}
+                </Tooltip>
+              </Circle>
+            )
+          })}
           {vehicles.map((vehicle) => {
             const selected = vehicle.id === selectedVehicleId
 
@@ -382,7 +472,7 @@ export function VehicleMap({
         <div className="vehicle-map-count-pill">
           {loading ? <Spinner className="size-4" /> : <Navigation className="size-4 text-[var(--primary)]" />}
           <span>{vehicles.length}</span>
-          <span className="text-[var(--muted-foreground)]">disponibili</span>
+          <span className="text-[var(--muted-foreground)]">mezzi</span>
         </div>
       </div>
 
@@ -392,6 +482,7 @@ export function VehicleMap({
             vehicle={selectedVehicle}
             onClose={() => onSelectVehicle(null)}
             onOpenVehicle={onOpenVehicle}
+            onCopyVehicle={onCopyVehicle}
           />
         </div>
       )}

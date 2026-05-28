@@ -58,13 +58,19 @@ export function StatusChip({ status }: { status: string }) {
     open: { label: "Aperto", cls: "bg-[#ffe5e5] text-[var(--destructive)]" },
     in_progress: { label: "In lavorazione", cls: "bg-[#fff3d6] text-[var(--warning)]" },
     resolved: { label: "Risolto", cls: "bg-[var(--secondary-container)] text-[var(--secondary-foreground)]" },
+    closed: { label: "Chiuso", cls: "bg-[var(--surface-high)] text-[var(--muted-foreground)]" },
     active: { label: "Attiva", cls: "bg-[var(--secondary-container)] text-[var(--secondary-foreground)]" },
+    paused: { label: "In pausa", cls: "bg-[#fff3d6] text-[var(--warning)]" },
     expired: { label: "Scaduta", cls: "bg-[var(--surface-high)] text-[var(--muted-foreground)]" },
     cancelled: { label: "Annullata", cls: "bg-[var(--surface-high)] text-[var(--muted-foreground)]" },
     converted_to_ride: { label: "In corsa", cls: "bg-[var(--surface-high)] text-[var(--primary)]" },
     completed: { label: "Completata", cls: "bg-[var(--secondary-container)] text-[var(--secondary-foreground)]" },
     suspended: { label: "Sospeso", cls: "bg-[#fff3d6] text-[var(--warning)]" },
     blocked: { label: "Bloccato", cls: "bg-[#ffe5e5] text-[var(--destructive)]" },
+    remote_locked: { label: "Blocco remoto", cls: "bg-[#ffe5e5] text-[var(--destructive)]" },
+    ok: { label: "OK", cls: "bg-[var(--secondary-container)] text-[var(--secondary-foreground)]" },
+    warning: { label: "Attenzione", cls: "bg-[#fff3d6] text-[var(--warning)]" },
+    critical: { label: "Critica", cls: "bg-[#ffe5e5] text-[var(--destructive)]" },
   }
   const item = map[status] ?? { label: status, cls: "bg-[var(--surface-high)] text-[var(--muted-foreground)]" }
   return (

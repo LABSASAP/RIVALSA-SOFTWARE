@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { ArrowLeft, CreditCard, Home, LogOut, MapPin, TriangleAlert, UserRound } from "lucide-react"
+import { ArrowLeft, CreditCard, Gift, Headphones, Home, LogOut, MapPin, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
@@ -29,6 +29,8 @@ export function AppShell({
     pathname.startsWith("/reservation") ||
     pathname.startsWith("/ride")
   const paymentSectionActive = pathname.startsWith("/payment-methods")
+  const creditsSectionActive = pathname.startsWith("/credits")
+  const supportSectionActive = pathname.startsWith("/support")
   const profileSectionActive = pathname.startsWith("/profile")
 
   return (
@@ -59,6 +61,8 @@ export function AppShell({
           <nav className="hidden md:flex items-center gap-1 rounded-full bg-white/70 p-1 shadow-[0_12px_32px_rgba(25,28,29,0.06)] backdrop-blur-[20px]" aria-label="Navigazione utente">
             <DesktopNavLink to="/nearby" icon={<Home className="size-4" />} label="Mezzi" active={rideSectionActive} />
             <DesktopNavLink to="/payment-methods" icon={<CreditCard className="size-4" />} label="Pagamenti" active={paymentSectionActive} />
+            <DesktopNavLink to="/credits" icon={<Gift className="size-4" />} label="Crediti" active={creditsSectionActive} />
+            <DesktopNavLink to="/support" icon={<Headphones className="size-4" />} label="Supporto" active={supportSectionActive} />
             <DesktopNavLink to="/profile" icon={<UserRound className="size-4" />} label="Profilo" active={profileSectionActive} />
           </nav>
         )}
@@ -87,10 +91,11 @@ export function AppShell({
 
       {!hideTabs && (
         <nav className={cn("fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-[calc(430px-1.5rem)] z-30", variant === "wide" && "app-shell-tabs-wide")}>
-          <div className="grid grid-cols-4 rounded-3xl bg-white p-1.5 shadow-[0_12px_32px_rgba(25,28,29,0.08)]">
+          <div className="grid grid-cols-5 rounded-3xl bg-white p-1.5 shadow-[0_12px_32px_rgba(25,28,29,0.08)]">
             <TabLink to="/nearby" icon={<Home className="size-5" />} label="Mezzi" active={rideSectionActive} />
-            <TabLink to="/payment-methods" icon={<CreditCard className="size-5" />} label="Pagamenti" active={paymentSectionActive} />
-            <TabLink to="/report" icon={<TriangleAlert className="size-5" />} label="Segnala" active={pathname.startsWith("/report")} />
+            <TabLink to="/payment-methods" icon={<CreditCard className="size-5" />} label="Pay" active={paymentSectionActive} />
+            <TabLink to="/credits" icon={<Gift className="size-5" />} label="Crediti" active={creditsSectionActive} />
+            <TabLink to="/support" icon={<Headphones className="size-5" />} label="Help" active={supportSectionActive || pathname.startsWith("/report")} />
             <TabLink to="/profile" icon={<UserRound className="size-5" />} label="Profilo" active={profileSectionActive} />
           </div>
         </nav>

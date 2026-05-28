@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { Timer, Clock as Unlock } from "lucide-react"
+import { LockKeyhole, Timer, Clock as Unlock } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import {
   StatusChip,
@@ -65,6 +65,7 @@ export function ReservationPage() {
   const mm = Math.floor(remaining / 60)
   const ss = remaining % 60
   const expired = remainingMs <= 0
+  const isLocked = !!vehicle?.is_remote_locked
 
   const unlock = async () => {
     if (!reservation) return
@@ -109,9 +110,25 @@ export function ReservationPage() {
         <h2 className="text-2xl font-extrabold mt-1">{VehicleDisplayName(vehicle)}</h2>
         <p className="mt-1 text-sm font-semibold text-[var(--muted-foreground)]">{VehicleModelLabel(vehicle)}</p>
         <div className="mt-3 flex justify-center">
-          <StatusChip status="reserved" />
+          <StatusChip status={isLocked ? "remote_locked" : "reserved"} />
         </div>
       </TonalCard>
+
+      {isLocked && (
+        <TonalCard className="mt-4 bg-[#ffe5e5]">
+          <div className="flex items-start gap-3">
+            <div className="flex size-11 items-center justify-center rounded-2xl bg-white/70 text-[var(--destructive)]">
+              <LockKeyhole className="size-5" />
+            </div>
+            <div>
+              <p className="font-bold text-[var(--destructive)]">Sblocco temporaneamente bloccato</p>
+              <p className="mt-1 text-sm text-[var(--destructive)]/80">
+                {vehicle.remote_lock_reason || "Un operatore ha bloccato il mezzo da remoto."}
+              </p>
+            </div>
+          </div>
+        </TonalCard>
+      )}
 
       <TonalCard className="mt-4">
         <p className="label-sm text-[var(--muted-foreground)]">TARIFFA {VehicleCategoryLabel(vehicle).toUpperCase()}</p>
@@ -132,7 +149,7 @@ export function ReservationPage() {
         </div>
       </TonalCard>
 
-      {expired ? (
+      {expired || isLocked ? (
         <Button onClick={() => navigate("/nearby")} className="mt-6 w-full h-14 rounded-2xl btn-primary-grad font-bold text-base">
           Torna ai mezzi
         </Button>

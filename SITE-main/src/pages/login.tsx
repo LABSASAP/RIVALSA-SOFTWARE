@@ -106,8 +106,8 @@ export function LoginPage() {
       <div className="mt-6 rounded-2xl bg-[var(--surface-low)] p-4 text-xs text-[var(--muted-foreground)] leading-relaxed">
         <p className="font-bold text-[var(--foreground)] mb-1">Setup locale</p>
         <p>1. Registra un account utente normale da questa schermata.</p>
-        <p>2. Registra un secondo account e promuovilo a <span className="font-mono">operator</span> da Supabase.</p>
-        <p>3. Se l&apos;utente esisteva gia, esegui il backfill e la migration bootstrap prima di accedere.</p>
+        <p>2. Registra account separati per <span className="font-mono">operator</span> e <span className="font-mono">public_admin</span>, poi promuovili da Supabase.</p>
+        <p>3. Esegui migration bootstrap e Sprint 2 prima di accedere con ruoli non utente.</p>
       </div>
     </div>
   )

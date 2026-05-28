@@ -18,7 +18,7 @@ export function OperatorUsersPage() {
 
   const load = async () => {
     setLoading(true)
-    const { data } = await supabase.from("profiles").select("*").order("role", { ascending: false }).order("created_at", { ascending: true })
+    const { data } = await supabase.from("profiles").select("*").eq("role", "user").order("created_at", { ascending: true })
     setUsers((data as Profile[]) ?? [])
     setLoading(false)
   }
