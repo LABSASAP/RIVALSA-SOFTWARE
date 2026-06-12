@@ -18,6 +18,8 @@
    `supabase/migrations/20260527170000_operator_sprint2.sql`
    `supabase/migrations/20260527200000_security_rls_grants.sql`
    `supabase/migrations/20260527201000_postgis_spatial_ref_sys_api_revoke.sql`
+   `supabase/migrations/20260527202000_fix_credit_wallet_ambiguous_user_id.sql`
+   `supabase/migrations/20260527203000_add_ride_pauses_maintenance_tasks.sql`
    opzionale demo: `supabase/seed_realistic_vehicles.sql` e `supabase/seed_sprint2_demo.sql`
 4. Avvia il progetto:
    `npm run dev`

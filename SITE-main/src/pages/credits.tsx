@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ArrowDownToLine, Coins, Gift } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { TonalCard } from "@/components/vehicle-card"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { useAuth } from "@/lib/auth-context"
 import { supabase, type CreditTransaction, type CreditWallet } from "@/lib/supabase"
 
 function normalizeWallet(data: unknown) {
@@ -23,17 +24,33 @@ function transactionValue(tx: CreditTransaction) {
 }
 
 export function CreditsPage() {
+  const { session } = useAuth()
+  const userId = session?.user.id
   const [wallet, setWallet] = useState<CreditWallet | null>(null)
   const [transactions, setTransactions] = useState<CreditTransaction[]>([])
   const [loading, setLoading] = useState(true)
   const [redeeming, setRedeeming] = useState(false)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
-    const [{ data: walletData, error }, { data: txData }] = await Promise.all([
+    if (!userId) {
+      toast.error("Sessione non disponibile")
+      setWallet(null)
+      setTransactions([])
+      setLoading(false)
+      return
+    }
+
+    const [{ data: walletData, error: walletError }, { data: txData, error: txError }] = await Promise.all([
       supabase.rpc("credit_wallet_get"),
-      supabase.from("credit_transactions").select("*").order("created_at", { ascending: false }).limit(20),
+      supabase
+        .from("credit_transactions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(20),
     ])
+    const error = walletError ?? txError
     if (error) {
       toast.error(error.message)
       setLoading(false)
@@ -42,9 +59,9 @@ export function CreditsPage() {
     setWallet(normalizeWallet(walletData))
     setTransactions((txData as CreditTransaction[]) ?? [])
     setLoading(false)
-  }
+  }, [userId])
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => { void load() }, [load])
 
   const redeem = async () => {
     setRedeeming(true)

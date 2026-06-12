@@ -47,7 +47,9 @@ where table_schema = 'public'
     'credit_transactions',
     'support_tickets',
     'support_messages',
-    'ride_positions'
+    'ride_positions',
+    'ride_pauses',
+    'maintenance_tasks'
   )
   and grantee in ('PUBLIC', 'anon', 'authenticated', 'service_role')
 order by table_name, grantee, privilege_type;

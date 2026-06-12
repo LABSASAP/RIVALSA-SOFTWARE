@@ -107,6 +107,15 @@ export type Ride = {
   pause_status?: "active" | "paused"
 }
 
+export type RidePause = {
+  id: string
+  ride_id: string
+  started_at: string
+  ended_at: string | null
+  duration_seconds: number
+  created_at: string
+}
+
 export type RideEndDetails = {
   ride_id: string
   vehicle_id: string
@@ -145,6 +154,23 @@ export type VehicleReport = {
   issue_type: string
   description: string
   status: "open" | "in_progress" | "resolved"
+  created_at: string
+  updated_at: string
+}
+
+export type MaintenanceTask = {
+  id: string
+  vehicle_id: string
+  assigned_operator_id: string | null
+  vehicle_report_id: string | null
+  type: "scheduled" | "corrective" | "inspection"
+  priority: "low" | "medium" | "high" | "critical"
+  reason: string
+  notes: string | null
+  opened_at: string
+  started_at: string | null
+  closed_at: string | null
+  status: "open" | "in_progress" | "closed" | "cancelled"
   created_at: string
   updated_at: string
 }
