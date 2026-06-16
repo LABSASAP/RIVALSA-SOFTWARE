@@ -20,6 +20,7 @@
    `supabase/migrations/20260527201000_postgis_spatial_ref_sys_api_revoke.sql`
    `supabase/migrations/20260527202000_fix_credit_wallet_ambiguous_user_id.sql`
    `supabase/migrations/20260527203000_add_ride_pauses_maintenance_tasks.sql`
+   `supabase/migrations/20260616103000_require_payment_method_before_ride_unlock.sql`
    opzionale demo: `supabase/seed_realistic_vehicles.sql` e `supabase/seed_sprint2_demo.sql`
 4. Avvia il progetto:
    `npm run dev`
@@ -83,13 +84,14 @@ where p.id is null;
 
 1. Accedi come utente normale.
 2. Verifica che `/nearby` mostri i mezzi seedati.
-3. Prenota un mezzo e sbloccalo.
-4. Aggiungi un metodo di pagamento da `/payment-methods`.
-5. Termina la corsa e controlla il riepilogo.
-6. Invia una segnalazione da `/report`.
-7. Verifica crediti e supporto da `/credits` e `/support`.
-8. Accedi come operatore e verifica `/operator`, `/operator/reservations`, `/operator/support`, `/operator/fleet`, `/operator/tracking`, `/operator/maintenance`, `/operator/end-location` e `/operator/users`.
-9. Accedi come amministrazione comunale e verifica `/public-admin`, `/public-admin/zones` e `/public-admin/routes`.
+3. Prenota un mezzo.
+4. Aggiungi un metodo di pagamento da `/payment-methods`, se non e gia presente.
+5. Torna alla prenotazione e sblocca il mezzo.
+6. Termina la corsa e controlla il riepilogo.
+7. Invia una segnalazione da `/report`.
+8. Verifica crediti e supporto da `/credits` e `/support`.
+9. Accedi come operatore e verifica `/operator`, `/operator/reservations`, `/operator/support`, `/operator/fleet`, `/operator/tracking`, `/operator/maintenance`, `/operator/end-location` e `/operator/users`.
+10. Accedi come amministrazione comunale e verifica `/public-admin`, `/public-admin/zones` e `/public-admin/routes`.
 
 ## Verifica Sprint 2 Amministrazione Comunale
 

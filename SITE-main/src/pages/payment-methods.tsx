@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 import { CreditCard, Plus, Trash2 } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
@@ -27,8 +27,10 @@ type RequestError = {
 
 export function PaymentMethodsPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { session, signOut } = useAuth()
   const userId = session?.user.id
+  const returnTo = searchParams.get("returnTo") === "/reservation" ? "/reservation" : null
   const [methods, setMethods] = useState<PaymentMethod[]>([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
@@ -107,6 +109,10 @@ export function PaymentMethodsPage() {
     toast.success("Metodo aggiunto")
     setLast4("")
     setIsDefault(true)
+    if (returnTo) {
+      navigate(returnTo, { replace: true })
+      return
+    }
     void load()
   }
 
